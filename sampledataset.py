@@ -3,13 +3,13 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, roc_curve, roc_auc_score
 import matplotlib.pyplot as plt
 import seaborn as sns
 import shap
 
 # 2. Load your dataset
-df = pd.read_csv("data[2].csv")
+df = pd.read_csv("data/breastcancer.csv")
 
 # 3. Preprocess
 df = df.drop("id", axis=1)  # drop ID column
@@ -39,6 +39,21 @@ print("\nClassification Report:\n", classification_report(y_test, predictions))
 acc = accuracy_score(y_test, predictions)
 print("\nAccuracy of Random Forest Model: {:.2f}%".format(acc*100))
 
+# ROC Curve and AUC
+probs = rfc.predict_proba(X_test)[:, 1]
+fpr, tpr, thresholds = roc_curve(y_test, probs)
+roc_auc = roc_auc_score(y_test, probs)
+plt.figure()
+plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
+plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic (ROC)')
+plt.legend(loc="lower right")
+plt.show()
+
 # 9. Feature importance
 feat_imp = pd.Series(rfc.feature_importances_, index=X_train.columns).sort_values(ascending=False)
 plt.figure(figsize=(10,6))
@@ -50,10 +65,5 @@ plt.show()
 explainer = shap.TreeExplainer(rfc)
 shap_values = explainer.shap_values(X_test)
 
-# Global feature importance
-shap.summary_plot(shap_values[1], X_test)
 
-# Explain a single prediction
-idx = 0  # first test sample
-shap.force_plot(explainer.expected_value[1], shap_values[1][idx], X_test.iloc[idx], matplotlib=True)
 
