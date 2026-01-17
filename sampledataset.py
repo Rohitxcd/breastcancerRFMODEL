@@ -30,6 +30,14 @@ X_train, X_test, y_train, y_test = train_test_split(
 rfc = RandomForestClassifier(n_estimators=300, random_state=42)
 rfc.fit(X_train, y_train)
 
+## pickle the model
+import pickle
+
+# Save trained Random Forest model
+with open("random_forest_breast_cancer.pkl", "wb") as f:
+    pickle.dump(rfc, f)
+
+
 # 7. Predictions
 predictions = rfc.predict(X_test)
 
